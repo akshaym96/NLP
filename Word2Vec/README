@@ -1,0 +1,206 @@
+==========================================================================================
+
+         Introduction to Natural Laguage Processing Assignment 1
+                   SBU ID:- 112078311
+                  NAME:- AKSHAY MALLIPEDDI
+ 
+==========================================================================================
+
+1. In this assignment, we have:
+
+  - Batch generation for skip-gram model (word2vec_basic.py)
+  - Two loss functions to train word embeddings (loss_func.py)
+  - To tune the parameters for word embeddings 
+  - Apply learned word embeddings to word analogy task (word_analogy.py)
+
+
+2. Generating batch
+
+  For skip-gram model, I slide a window
+  and sample training instances from the data inside the window.
+  While sliding through the window my code will generate a pair such that one target word 
+  is taken from right side and one target word is taken from left side. My batch generation 
+  moves from center and moves towards end of the window.
+
+  [Example]
+  Suppose that we have a text: "The quick brown fox jumps over the lazy dog."
+  And batch_size = 8, window_size = 3
+
+  "[The quick brown] fox jumps over the lazy dog"
+
+  Context word would be 'quick' and predicting words are 'The' and 'brown'.
+  This will generate training examples:
+       context(x), predicted_word(y)
+          (quick , brown)   //Right first
+          (quick , the)     //then left
+
+  And then move the sliding window.
+  "The [quick brown fox] jumps over the lazy dog"
+  In the same way, we have two more examples:
+      (brown, fox)      //right first 
+      (brown, quick)    //then left
+
+  Moving the window again:
+  "The quick [brown fox jumps] over the lazy dog"
+  We get,
+      (fox, jumps)    //right first
+      (fox, jumps)    // then left
+
+  Finally we get two more instances from the moved window,
+  "The quick brown [fox jumps over] the lazy dog"
+      (jumps, over)  //right side
+      (jumps, fox)   //then left
+
+  Since now we have 8 training instances, which is the batch size,
+  I stop generating this batch and return batch data.
+
+  1. data_index is the index of a word.
+  2. batch_size is the number of instances in one batch.
+  3. num_skips is the number of samples you want to draw in a window(in example, it was 2).
+  4. skip_windows decides how many words to consider left and right from a context word(so, skip_windows*2+1 = window_size).
+  5. Batch will contains word ids for context words. Dimension is [batch_size].
+  6. Labels will contains word ids for predicting words. Dimension is [batch_size, 1].
+
+
+3. Loss Functions:-
+
+     a. Cross entropy:
+	
+      I used the same equation given in the comments which is same as the one taught in class 
+      First I calculated A, the steps are as follows:-
+      1. The dot product of inputs and true_w. 
+      2. Then taking exp followed by log
+
+      Calculation for B:-
+      1. Matrix multiplication of inputs and transpose(true_w)
+      2. Then exp followed by log
+
+       Then returning B-A
+
+    b. Noise Contrastive Estimation:-
+     
+	1. Fetching all the values [labels_embeddings, sample_embeddings, sample_bias, unigram_prob, label_bias,label_prob] using embedding_lookup
+        2. Calculating the second term in the formula given to us,involves calculating s(w_x,w_c) and adding the bias(sample_bias) to it.
+        3. Then calculating the unigram probility of negative sample (sample_prob)
+        4. sigmoid_wxwc gives the value for Pr(D = 1, w_x |w_c )
+        5. The log of this value is then calculated for all the samples and the sum is reduced.
+        6. Similar to second term, in first term too we proceed with calculating s(w_o,w_c) and adding bias(label_bias) to it.
+        7. Then calculating the unigram probility of negative sample (label_prob)
+        8. sigmoid_w0wc gives the value for Pr(D = 1, w_o |w_c )
+        9. The log of this value is then calculated.
+        10. We return [batch_size,1] which indicates value for all the intances in the batch. 
+
+ 
+4. Tuning the hyper parameters:- 
+
+
+NCE MODEL:-
+
+     My best NCE model had a maximum accuracy of 35.3%. I ran the code for the same configuration multiple times 
+     and I got different values[34.7,35.3,34.2, 34.4]. Among all the different values the maximum achieved was 35.3%.
+     I have submitted this model for NCE.
+  
+  Model#1:-
+  batch_size = 256
+  embedding_size = 128  
+  skip_window = 4     
+  num_skips = 8    
+  num_sampled = 128
+  Learning rate = 1.0
+
+     I got the same highest accuracy of 35.3% for a different configuration as well. 
+  
+  Model#2:-
+  batch_size = 32
+  embedding_size = 128  
+  skip_window = 4     
+  num_skips = 8    
+  num_sampled = 64
+  Learning rate = 1.0
+
+     
+Cross Entropy[CE] MODEL:-
+
+     My best CE model had a maximum accuracy of 35.3%. I ran the code for the same configuration multiple times 
+     and I got different values[34.3,35.3]. Among all the different values the maximum achieved was 35.3%.
+     I have submitted this model for CE.
+
+  Model#1:-
+  batch_size = 128
+  embedding_size = 128  
+  skip_window = 4     
+  num_skips = 8    
+  num_sampled = 64
+  Learning rate = 1.0
+
+
+5. Analogies using word vectors
+
+
+   The main task is to calculate the similarity between the examples and the choices that were provided to us.
+   We need to predict which choice is closest/farthest to the respective example provided.
+
+  Procedure:- Difference vectors of each pair from the examples is taken and the average of these
+   differences is calculated. Then I took the difference vector    of each choice and
+  took cosine similarity of this difference vector with the average that we got from the examples.
+ I calculated this for all the choices and selected maximum and minimum from this combination.
+
+
+# Added scipy to access cosine similarity
+from scipy import spatial
+Cosine similarity = 1- spatial.distance.cosine(first_embedding, second_embeddings)
+
+
+Function for printing top 20 similar words for {first, american, would}
+
+  Steps I followed to generate the top 20 words for {first, american, would}:
+
+1. Load the generated model.
+2. Fetch the dictionary, embeddings
+3. For each word in given 3 words and whole vocabulary,I calculate cosine similarity for all such pairs and store it in a dictionary.     {"cosine_similarity", "word_from_vocabulary"}
+4. Then this dictionary is sorted.
+5. Then top 20 words are taken. 
+
+The list of top 20 similar words can be found in the report.
+
+6. This package contains several files:
+
+For word2vec
+
+  - word2vec_basic.py: 
+    This file is the main script for training word2vec model.
+    Usage:
+      python word2vec_basic.py [cross_entropy | nce]
+
+  - loss_func.py
+    This file have two loss functions 
+    1. cross_entropy_loss - Loss we used in class.
+    2. nce_loss - Noise contrastive estimation loss described in the assignment pdf.
+
+For analogy task
+
+  - word_analogy.py
+    For evaluating relation between pairs of words 
+
+  - word_analogy_test_predictions_cross_entropy.txt
+    A prediction file that was generated from the best model of cross entropy. 
+
+  - word_analogy_test_predictions_nce.txt
+    A prediction file that was generated from the best model of NCE.
+
+Models
+
+       My best models for Cross Entropy and Noise Contrastive Estimation. The configurations that 
+       I used to generate them are given above
+
+   - word2vec_cross_entropy.model
+   - word2vec_nce.model
+
+README
+   
+   - A file with explanation of my implementation
+     
+REPORT
+    
+   - report_112078311.pdf
+     A report for the assignment.

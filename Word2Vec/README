@@ -1,12 +1,12 @@
 ==========================================================================================
 
-         Introduction to Natural Laguage Processing Assignment 1
+         Introduction to Natural Laguage Processing
                    SBU ID:- 112078311
                   NAME:- AKSHAY MALLIPEDDI
  
 ==========================================================================================
 
-1. In this assignment, we have:
+1. In this project, we have:
 
   - Batch generation for skip-gram model (word2vec_basic.py)
   - Two loss functions to train word embeddings (loss_func.py)
@@ -174,8 +174,8 @@ For word2vec
 
   - loss_func.py
     This file have two loss functions 
-    1. cross_entropy_loss - Loss we used in class.
-    2. nce_loss - Noise contrastive estimation loss described in the assignment pdf.
+    1. cross_entropy_loss
+    2. nce_loss - Noise contrastive estimation loss .
 
 For analogy task
 
@@ -203,4 +203,4 @@ README
 REPORT
     
    - report_112078311.pdf
-     A report for the assignment.
+     A report for the project.
